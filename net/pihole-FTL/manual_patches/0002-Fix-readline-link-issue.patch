@@ -1,0 +1,43 @@
+From 91411d4c3ca9820c913562256da0f2388f929dfc Mon Sep 17 00:00:00 2001
+From: root <root@buildserver.jfly.dev>
+Date: Tue, 21 Mar 2023 04:17:48 +0000
+Subject: [PATCH 2/2] Fix readline link issue
+
+---
+ src/CMakeLists.txt | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index e7138179..d6b5ba4f 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -198,22 +198,23 @@ find_library(LIBHOGWEED NAMES libhogweed${CMAKE_STATIC_LIBRARY_SUFFIX} hogweed)
+ find_library(LIBGMP NAMES libgmp${CMAKE_STATIC_LIBRARY_SUFFIX} gmp)
+ find_library(LIBNETTLE NAMES libnettle${CMAKE_STATIC_LIBRARY_SUFFIX} nettle)
+ find_library(LIBIDN NAMES libidn${CMAKE_STATIC_LIBRARY_SUFFIX} idn)
++find_library(LIBNCURSES NAMES libncurses${CMAKE_STATIC_LIBRARY_SUFFIX} ncurses)
++find_library(LIBREADLINE NAMES libreadline${CMAKE_STATIC_LIBRARY_SUFFIX} readline)
+ 
+-target_link_libraries(pihole-FTL rt Threads::Threads ${LIBHOGWEED} ${LIBGMP} ${LIBNETTLE} ${LIBIDN})
++target_link_libraries(pihole-FTL rt Threads::Threads ${LIBHOGWEED} ${LIBGMP} ${LIBNETTLE} ${LIBIDN} ${LIBREADLINE} ${LIBNCURSES})
+ 
+ if(LUA_DL STREQUAL "true")
+     find_library(LIBDL dl)
+     target_link_libraries(pihole-FTL ${LIBDL})
+ endif()
+ 
+-find_library(LIBREADLINE NAMES libreadline${CMAKE_STATIC_LIBRARY_SUFFIX} readline)
+ find_library(LIBHISTORY NAMES libhistory${CMAKE_STATIC_LIBRARY_SUFFIX} history)
+ find_library(LIBTERMCAP NAMES libtermcap${CMAKE_STATIC_LIBRARY_SUFFIX} termcap)
+ if(LIBREADLINE AND LIBHISTORY AND LIBTERMCAP)
+     message(STATUS "Building FTL with readline support: YES")
+     target_compile_definitions(FTL PRIVATE LUA_USE_READLINE)
+     target_compile_definitions(pihole-FTL PRIVATE LUA_USE_READLINE)
+-    target_link_libraries(pihole-FTL ${LIBREADLINE} ${LIBHISTORY} ${LIBTERMCAP})
++    target_link_libraries(pihole-FTL ${LIBREADLINE} ${LIBHISTORY} ${LIBTERMCAP} ${LIBNCURSES})
+ else()
+     message(STATUS "Building FTL with readline support: NO")
+ endif()
+-- 
+2.30.2
+

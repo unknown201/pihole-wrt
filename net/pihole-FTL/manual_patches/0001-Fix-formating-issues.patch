@@ -1,0 +1,119 @@
+From 7395f0d1564a9840ac29b4cfe413d7d0e81b4268 Mon Sep 17 00:00:00 2001
+From: root <root@buildserver.jfly.dev>
+Date: Mon, 20 Mar 2023 22:12:55 +0000
+Subject: [PATCH 1/2] Fix formating issues
+
+---
+ src/database/message-table.c |  2 +-
+ src/database/network-table.c | 20 ++++++++++----------
+ 2 files changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/src/database/message-table.c b/src/database/message-table.c
+index ef1b28d5..63660074 100644
+--- a/src/database/message-table.c
++++ b/src/database/message-table.c
+@@ -361,7 +361,7 @@ void logg_rate_limit_message(const char *clientIP, const unsigned int rate_limit
+ 	const time_t turnaround = get_rate_limit_turnaround(rate_limit_count);
+ 
+ 	// Log to FTL.log
+-	logg("Rate-limiting %s for at least %ld second%s",
++	logg("Rate-limiting %s for at least %lld second%s",
+ 	     clientIP, turnaround, turnaround == 1 ? "" : "s");
+ 
+ 	// Log to database
+diff --git a/src/database/network-table.c b/src/database/network-table.c
+index 85c0b8d3..7124b8fc 100644
+--- a/src/database/network-table.c
++++ b/src/database/network-table.c
+@@ -400,7 +400,7 @@ static int update_netDB_lastQuery(sqlite3 *db, const int network_id, const time_
+ 		return SQLITE_OK;
+ 
+ 	const int ret = dbquery(db, "UPDATE network "\
+-	                            "SET lastQuery = MAX(lastQuery, %ld) "\
++	                            "SET lastQuery = MAX(lastQuery, %lld) "\
+ 	                            "WHERE id = %i;",
+ 	                            lastQuery, network_id);
+ 
+@@ -523,7 +523,7 @@ static int insert_netDB_device(sqlite3 *db, const char *hwaddr, time_t now, time
+ 	int rc = sqlite3_prepare_v2(db, querystr, -1, &query_stmt, NULL);
+ 	if(rc != SQLITE_OK)
+ 	{
+-		logg("insert_netDB_device(\"%s\",%lu, %lu, %u, \"%s\") - SQL error prepare (%i): %s",
++		logg("insert_netDB_device(\"%s\",%llu, %llu, %u, \"%s\") - SQL error prepare (%i): %s",
+ 		     hwaddr, now, lastQuery, numQueriesARP, macVendor, rc, sqlite3_errstr(rc));
+ 		checkFTLDBrc(rc);
+ 		return rc;
+@@ -531,14 +531,14 @@ static int insert_netDB_device(sqlite3 *db, const char *hwaddr, time_t now, time
+ 
+ 	if(config.debug & DEBUG_DATABASE)
+ 	{
+-		logg("dbquery: \"%s\" with arguments ?1-?5 = (\"%s\",%lu,%lu,%u,\"%s\")",
++		logg("dbquery: \"%s\" with arguments ?1-?5 = (\"%s\",%llu,%llu,%u,\"%s\")",
+ 		     querystr, hwaddr, now, lastQuery, numQueriesARP, macVendor);
+ 	}
+ 
+ 	// Bind hwaddr to prepared statement (1st argument)
+ 	if((rc = sqlite3_bind_text(query_stmt, 1, hwaddr, -1, SQLITE_STATIC)) != SQLITE_OK)
+ 	{
+-		logg("insert_netDB_device(\"%s\",%lu, %lu, %u, \"%s\"): Failed to bind hwaddr (error %d): %s",
++		logg("insert_netDB_device(\"%s\",%llu, %llu, %u, \"%s\"): Failed to bind hwaddr (error %d): %s",
+ 		     hwaddr, now, lastQuery, numQueriesARP, macVendor, rc, sqlite3_errstr(rc));
+ 		sqlite3_reset(query_stmt);
+ 		checkFTLDBrc(rc);
+@@ -548,7 +548,7 @@ static int insert_netDB_device(sqlite3 *db, const char *hwaddr, time_t now, time
+ 	// Bind now to prepared statement (2nd argument)
+ 	if((rc = sqlite3_bind_int(query_stmt, 2, now)) != SQLITE_OK)
+ 	{
+-		logg("insert_netDB_device(\"%s\",%lu, %lu, %u, \"%s\"): Failed to bind now (error %d): %s",
++		logg("insert_netDB_device(\"%s\",%llu, %llu, %u, \"%s\"): Failed to bind now (error %d): %s",
+ 		     hwaddr, now, lastQuery, numQueriesARP, macVendor, rc, sqlite3_errstr(rc));
+ 		sqlite3_reset(query_stmt);
+ 		checkFTLDBrc(rc);
+@@ -558,7 +558,7 @@ static int insert_netDB_device(sqlite3 *db, const char *hwaddr, time_t now, time
+ 	// Bind lastQuery to prepared statement (3rd argument)
+ 	if((rc = sqlite3_bind_int(query_stmt, 3, lastQuery)) != SQLITE_OK)
+ 	{
+-		logg("insert_netDB_device(\"%s\",%lu, %lu, %u, \"%s\"): Failed to bind lastQuery (error %d): %s",
++		logg("insert_netDB_device(\"%s\",%llu, %llu, %u, \"%s\"): Failed to bind lastQuery (error %d): %s",
+ 		     hwaddr, now, lastQuery, numQueriesARP, macVendor, rc, sqlite3_errstr(rc));
+ 		sqlite3_reset(query_stmt);
+ 		checkFTLDBrc(rc);
+@@ -568,7 +568,7 @@ static int insert_netDB_device(sqlite3 *db, const char *hwaddr, time_t now, time
+ 	// Bind numQueriesARP to prepared statement (4th argument)
+ 	if((rc = sqlite3_bind_int(query_stmt, 4, numQueriesARP)) != SQLITE_OK)
+ 	{
+-		logg("insert_netDB_device(\"%s\",%lu, %lu, %u, \"%s\"): Failed to bind numQueriesARP (error %d): %s",
++		logg("insert_netDB_device(\"%s\",%llu, %llu, %u, \"%s\"): Failed to bind numQueriesARP (error %d): %s",
+ 		     hwaddr, now, lastQuery, numQueriesARP, macVendor, rc, sqlite3_errstr(rc));
+ 		sqlite3_reset(query_stmt);
+ 		checkFTLDBrc(rc);
+@@ -578,7 +578,7 @@ static int insert_netDB_device(sqlite3 *db, const char *hwaddr, time_t now, time
+ 	// Bind macVendor to prepared statement (5th argument) - the macVendor can be NULL here
+ 	if((rc = sqlite3_bind_text(query_stmt, 5, macVendor, -1, SQLITE_STATIC)) != SQLITE_OK)
+ 	{
+-		logg("insert_netDB_device(\"%s\",%lu, %lu, %u, \"%s\"): Failed to bind macVendor (error %d): %s",
++		logg("insert_netDB_device(\"%s\",%llu, %llu, %u, \"%s\"): Failed to bind macVendor (error %d): %s",
+ 		     hwaddr, now, lastQuery, numQueriesARP, macVendor, rc, sqlite3_errstr(rc));
+ 		sqlite3_reset(query_stmt);
+ 		checkFTLDBrc(rc);
+@@ -588,7 +588,7 @@ static int insert_netDB_device(sqlite3 *db, const char *hwaddr, time_t now, time
+ 	// Perform step
+ 	if ((rc = sqlite3_step(query_stmt)) != SQLITE_DONE)
+ 	{
+-		logg("insert_netDB_device(\"%s\",%lu, %lu, %u, \"%s\"): Failed to step (error %d): %s",
++		logg("insert_netDB_device(\"%s\",%llu, %llu, %u, \"%s\"): Failed to step (error %d): %s",
+ 		     hwaddr, now, lastQuery, numQueriesARP, macVendor, rc, sqlite3_errstr(rc));
+ 		sqlite3_reset(query_stmt);
+ 		checkFTLDBrc(rc);
+@@ -598,7 +598,7 @@ static int insert_netDB_device(sqlite3 *db, const char *hwaddr, time_t now, time
+ 	// Finalize statement
+ 	if ((rc = sqlite3_finalize(query_stmt)) != SQLITE_OK)
+ 	{
+-		logg("insert_netDB_device(\"%s\",%lu, %lu, %u, \"%s\"): Failed to finalize (error %d): %s",
++		logg("insert_netDB_device(\"%s\",%llu, %llu, %u, \"%s\"): Failed to finalize (error %d): %s",
+ 		     hwaddr, now, lastQuery, numQueriesARP, macVendor, rc, sqlite3_errstr(rc));
+ 		sqlite3_reset(query_stmt);
+ 		checkFTLDBrc(rc);
+-- 
+2.30.2
+
