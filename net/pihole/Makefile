@@ -22,10 +22,10 @@ include $(INCLUDE_DIR)/package.mk
 
 define Package/pihole
 	SECTION:=net
-	CATEGORY:=Network
+	CATEGORY:=Pihole
 	TITLE:=A black hole for Internet advertisements
 	URL:=https://pi-hole.net/
-  	DEPENDS:=pihole-FTL pihole-web +sudo +bash +bind-dig +ca-bundle +coreutils-sort +curl +idn +logrotate +coreutils-install +coreutils-chmod +coreutils-chown +coreutils-mktemp
+  	DEPENDS:=pihole-FTL pihole-web +sudo +bash +bind-dig +coreutils-sort +curl +idn +logrotate +coreutils-install +coreutils-chmod +coreutils-chown +coreutils-mktemp
 	PKGARCH:=all
 endef
 
@@ -42,7 +42,7 @@ define Package/pihole/install
 	$(CP) -r $(PKG_BUILD_DIR)/files/* $(1)/etc/.pihole
 
 	$(INSTALL_DIR) $(1)/etc/pihole
-	$(INSTALL_DATA) ./files/setupVars.conf $(1)/etc/pihole/
+	$(INSTALL_DATA) ./files/setupVars.conf $(1)/etc/lspihole/
 	
 	echo -n "" > $(1)/etc/pihole/custom.list
 	echo -n "openwrt openwrt " > $(1)/etc/pihole/localbranches
@@ -52,20 +52,22 @@ endef
 
 define Package/pihole/postinst
 #!/bin/sh
-exec /etc/.pihole/automated\ install/basic-install.sh
+cd /etc/.pihole/automated\ install/
 endef
 
 define Package/pihole/prerm
 #!/bin/sh
-exec /etc/.pihole/automated\ install/uninstall.sh
+cd /etc/.pihole/automated\ install/
+exec ./uninstall.sh
 endef
 
 define Build/Prepare
 	(echo "Starting prep phase")
-	(mkdir -p $(PKG_BUILD_DIR)/files/)
-	(cp -R $(PKG_BUILD_DIR)/../pihole-1.0/* $(PKG_BUILD_DIR)/files/)
-	(cd $(PKG_BUILD_DIR)/files/ && git apply /root/openwrt-sdk/local/net/pihole/manual_patches/0001-Update-Install-Script.patch)
 	$(Build/Prepare/Default)
+	(mkdir -p $(PKG_BUILD_DIR)/files/)
+	(cp -R $(PKG_BUILD_DIR)/../pihole-$(PKG_VERSION)/* $(PKG_BUILD_DIR)/files/)
+	(cd $(PKG_BUILD_DIR)/files/ && git apply /home/builder/pihole-wrt/net/pihole/manual_patches/0001-Update-Install-Script.patch)
+	
 endef
 
 define Build/Compile

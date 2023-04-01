@@ -4,11 +4,11 @@ PKG_NAME:=pihole-FTL
 PKG_VERSION:=1.5
 PKG_RELEASE:=1
 
-PKG_SOURCE_VERSION:=f380afda329f9c53c77c3318301b5ac6fe32c836
+PKG_SOURCE_VERSION:=eb1978910d521332ae95f24ad3acf1f9b3931360
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/pi-hole/FTL.git
 PKG_SOURCE:=$(PKG_SOURCE_VERSION).tar.gz
-PKG_MIRROR_HASH:=d7bbf686f3516dc645dd9e685fe2121751d3525c74260e3611e8d2d3c83e7b72
+PKG_MIRROR_HASH:=5c629c81847a03eeace9a121cf89feb04c1b49979ac69ef222ed555906570488
 
 PKG_LICENSE:=EUPL
 PKG_LICENSE_FILES:=LICENSE
@@ -17,7 +17,8 @@ PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/FTL-$(PKG_SOURCE_VERSIO
 
 PKG_INSTALL:=1
 PKG_BUILD_PARALLEL:=1
-PKG_CONFIG_DEPENDS:= CONFIG_PACKAGE_pihole-FTL_$(BUILD_VARIANT)_dhcp \
+PKG_CONFIG_DEPENDS:=+libc +libubus +libidn +libpthread +librt +libreadline +libgmp +libnettle \
+	CONFIG_PACKAGE_pihole-FTL_$(BUILD_VARIANT)_dhcp \
 	CONFIG_PACKAGE_pihole-FTL_$(BUILD_VARIANT)_dhcpv6 \
 	CONFIG_PACKAGE_pihole-FTL_$(BUILD_VARIANT)_auth \
 	CONFIG_PACKAGE_pihole-FTL_$(BUILD_VARIANT)_ipset \
@@ -30,10 +31,10 @@ include $(INCLUDE_DIR)/cmake.mk
 
 define Package/pihole-FTL/Default
   SECTION:=net
-  CATEGORY:=Network
+  CATEGORY:=Pihole
   TITLE:=The Pi-hole FTL engine
   URL:=https://pi-hole.net/
-  DEPENDS:=+libubus +libc +libidn +libpthread +librt +libreadline +libgmp +libnettle +libncurses +coreutils-install +coreutils-chmod +coreutils-chown
+  DEPENDS:=+libncurses
   CONFLICTS:=dnsmasq dnsmasq-dhcpv6 dnsmasq-full
   USERID:=pihole:pihole
 endef
@@ -106,8 +107,8 @@ define Package/pihole-FTL-full/config
 	endif
 endef
 
-TARGET_CFLAGS += -ffunction-sections -fdata-sections
-TARGET_LDFLAGS += -Wl,--gc-sections -L$(STAGING_DIR)/target-arm_cortex-a7+neon-vfpv4_musl_eabi/root-ipq40xx/lib -L$(STAGING_DIR)/target-arm_cortex-a7+neon-vfpv4_musl_eabi/usr/lib/
+TARGET_CFLAGS += -ffunction-sections -fdata-sections -U_FORTIFY_SOURCE
+TARGET_LDFLAGS += -Wl,--gc-sections
 
 COPTS = $(if $(CONFIG_IPV6),,-DNO_IPV6)
 LIBS = -pthread -lubox -lubus
@@ -116,14 +117,14 @@ ifeq ($(BUILD_VARIANT),nodhcpv6)
 	COPTS += -DNO_DHCP6
 endif
 
-CMAKE_OPTIONS += -DLIBMATH:FILEPATH=/root/openwrt-sdk/staging_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/root-ipq40xx/lib/libm.a
-CMAKE_OPTIONS += -DLIBIDN:FILEPATH=/root/openwrt-sdk/staging_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/usr/lib/libidn.a
-CMAKE_OPTIONS += -DLIBHOGWEED:FILEPATH=/root/openwrt-sdk/staging_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/usr/lib/libhogweed.a
-CMAKE_OPTIONS += -DLIBGMP:FILEPATH=/root/openwrt-sdk/staging_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/usr/lib/libgmp.a
-CMAKE_OPTIONS += -DLIBNETTLE:FILEPATH=/root/openwrt-sdk/staging_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/usr/lib/libnettle.a
-CMAKE_OPTIONS += -DLIBREADLINE:FILEPATH=/root/openwrt-sdk/staging_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/usr/lib/libreadline.a
-CMAKE_OPTIONS += -DLIBTINFO:FILEPATH=/root/openwrt-sdk/staging_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/usr/lib/libtinfo.a
-CMAKE_OPTIONS += -DLIBNCURSES:FILEPATH=/root/openwrt-sdk/staging_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/usr/lib/libncurses.so
+CMAKE_OPTIONS += -DLIBMATH:FILEPATH=$(STAGING_DIR)/root-ipq40xx/lib/libm.a
+CMAKE_OPTIONS += -DLIBIDN:FILEPATH=$(STAGING_DIR)/usr/lib/libidn.a
+CMAKE_OPTIONS += -DLIBHOGWEED:FILEPATH=$(STAGING_DIR)/usr/lib/libhogweed.a
+CMAKE_OPTIONS += -DLIBGMP:FILEPATH=$(STAGING_DIR)/usr/lib/libgmp.a
+CMAKE_OPTIONS += -DLIBNETTLE:FILEPATH=$(STAGING_DIR)/usr/lib/libnettle.a
+CMAKE_OPTIONS += -DLIBREADLINE:FILEPATH=$(STAGING_DIR)/usr/lib/libreadline.a
+CMAKE_OPTIONS += -DLIBTINFO:FILEPATH=$(STAGING_DIR)/usr/lib/libtinfo.a
+CMAKE_OPTIONS += -DLIBNCURSES:FILEPATH=$(STAGING_DIR)/usr/lib/libncurses.so
 CMAKE_OPTIONS += -DCI_ARCH=armv7l
 ifeq ($(BUILD_VARIANT),full)
 	COPTS += $(if $(CONFIG_PACKAGE_pihole-FTL_$(BUILD_VARIANT)_dhcp),,-DNO_DHCP) \
@@ -173,21 +174,9 @@ endef
 
 define Build/Prepare
 		$(Build/Prepare/Default)
-		(cp -R $(PKG_BUILD_DIR)/../pihole-FTL-1.0/* $(PKG_BUILD_DIR)/)
-		(cd $(PKG_BUILD_DIR) && git apply /root/openwrt-sdk/local/net/pihole-FTL/manual_patches/0001-Fix-formating-issues.patch)
-		(cd $(PKG_BUILD_DIR) && git apply /root/openwrt-sdk/local/net/pihole-FTL/manual_patches/0002-Fix-readline-link-issue.patch)
+		(cp -R $(PKG_BUILD_DIR)/../pihole-FTL-$(PKG_VERSION)/* $(PKG_BUILD_DIR)/)
+		(cd $(PKG_BUILD_DIR) && git apply /home/builder/pihole-wrt/net/pihole-FTL/git_patches/0001-Patching-build.patch)
 		(echo "set_property(TARGET lua_scripts PROPERTY LINKER_LANGUAGE C)" >> $(PKG_BUILD_DIR)/src/CMakeLists.txt)
-		(cd $(PKG_BUILD_DIR) && cmake . -DCMAKE_GENERATOR="Ninja" -DCMAKE_BINARY_DIR=$(PKG_BUILD_DIR) \
-		-DLIBGMP:FILEPATH=/root/openwrt-sdk/staging_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/usr/lib/libgmp.a \
-		-DLIBNETTLE:FILEPATH=/root/openwrt-sdk/staging_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/usr/lib/libnettle.a \
-		-DLIBIDN:FILEPATH=/root/openwrt-sdk/staging_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/usr/lib/libidn.a \
-		-DLIBMATH:FILEPATH=/root/openwrt-sdk/staging_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/root-ipq40xx/lib/libm.a \
-		-DLIBHOGWEED:FILEPATH=/root/openwrt-sdk/staging_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/usr/lib/libhogweed.a \
-		-DLIBTINFO:FILEPATH=/root/openwrt-sdk/staging_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/usr/lib/libtinfo.a \
-		-DLIBREADLINE:FILEPATH=/root/openwrt-sdk/staging_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/usr/lib/libreadline.a \
-		-DLIBNCURSES:FILEPATH=/root/openwrt-sdk/staging_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/usr/lib/libncurses.so \
-		-DCMAKE_C_COMPILER=/root/openwrt-sdk/staging_dir/toolchain-arm_cortex-a7+neon-vfpv4_gcc-12.2.0_musl_eabi/bin/arm-openwrt-linux-muslgnueabi-gcc \
-		-DCI_ARCH=armv7l)
 endef
 
 

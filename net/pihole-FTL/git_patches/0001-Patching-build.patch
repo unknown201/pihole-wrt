@@ -1,13 +1,45 @@
-From 7395f0d1564a9840ac29b4cfe413d7d0e81b4268 Mon Sep 17 00:00:00 2001
-From: root <root@buildserver.jfly.dev>
-Date: Mon, 20 Mar 2023 22:12:55 +0000
-Subject: [PATCH 1/2] Fix formating issues
+From af250e6a2fb55c1e6dc667dbe90bfccdf75fa7bc Mon Sep 17 00:00:00 2001
+From: Joshua Gilpatrick <unknown201@gmail.com>
+Date: Sat, 1 Apr 2023 00:46:45 +0000
+Subject: [PATCH] Patching build
 
 ---
+ src/CMakeLists.txt           |  7 ++++---
  src/database/message-table.c |  2 +-
  src/database/network-table.c | 20 ++++++++++----------
- 2 files changed, 11 insertions(+), 11 deletions(-)
+ 3 files changed, 15 insertions(+), 14 deletions(-)
 
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index e7138179..d6b5ba4f 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -198,22 +198,23 @@ find_library(LIBHOGWEED NAMES libhogweed${CMAKE_STATIC_LIBRARY_SUFFIX} hogweed)
+ find_library(LIBGMP NAMES libgmp${CMAKE_STATIC_LIBRARY_SUFFIX} gmp)
+ find_library(LIBNETTLE NAMES libnettle${CMAKE_STATIC_LIBRARY_SUFFIX} nettle)
+ find_library(LIBIDN NAMES libidn${CMAKE_STATIC_LIBRARY_SUFFIX} idn)
++find_library(LIBNCURSES NAMES libncurses${CMAKE_STATIC_LIBRARY_SUFFIX} ncurses)
++find_library(LIBREADLINE NAMES libreadline${CMAKE_STATIC_LIBRARY_SUFFIX} readline)
+ 
+-target_link_libraries(pihole-FTL rt Threads::Threads ${LIBHOGWEED} ${LIBGMP} ${LIBNETTLE} ${LIBIDN})
++target_link_libraries(pihole-FTL rt Threads::Threads ${LIBHOGWEED} ${LIBGMP} ${LIBNETTLE} ${LIBIDN} ${LIBREADLINE} ${LIBNCURSES})
+ 
+ if(LUA_DL STREQUAL "true")
+     find_library(LIBDL dl)
+     target_link_libraries(pihole-FTL ${LIBDL})
+ endif()
+ 
+-find_library(LIBREADLINE NAMES libreadline${CMAKE_STATIC_LIBRARY_SUFFIX} readline)
+ find_library(LIBHISTORY NAMES libhistory${CMAKE_STATIC_LIBRARY_SUFFIX} history)
+ find_library(LIBTERMCAP NAMES libtermcap${CMAKE_STATIC_LIBRARY_SUFFIX} termcap)
+ if(LIBREADLINE AND LIBHISTORY AND LIBTERMCAP)
+     message(STATUS "Building FTL with readline support: YES")
+     target_compile_definitions(FTL PRIVATE LUA_USE_READLINE)
+     target_compile_definitions(pihole-FTL PRIVATE LUA_USE_READLINE)
+-    target_link_libraries(pihole-FTL ${LIBREADLINE} ${LIBHISTORY} ${LIBTERMCAP})
++    target_link_libraries(pihole-FTL ${LIBREADLINE} ${LIBHISTORY} ${LIBTERMCAP} ${LIBNCURSES})
+ else()
+     message(STATUS "Building FTL with readline support: NO")
+ endif()
 diff --git a/src/database/message-table.c b/src/database/message-table.c
 index ef1b28d5..63660074 100644
 --- a/src/database/message-table.c

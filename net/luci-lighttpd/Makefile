@@ -15,7 +15,7 @@ include $(INCLUDE_DIR)/package.mk
 
 define Package/luci-lighttpd
 	SECTION:=net
-	CATEGORY:=Network
+	CATEGORY:=Pihole
 	TITLE:=Luci running on lighttpd
 	URL:=https://pi-hole.net/
   	DEPENDS:=+lighttpd +lighttpd-mod-cgi +luci-mod-admin-full +libiwinfo +luci-app-opkg +luci-theme-openwrt
@@ -28,7 +28,7 @@ endef
 
 define Package/luci-lighttpd/install
 	$(INSTALL_DIR) $(1)/etc/lighttpd/conf.d
-	$(INSTALL_DATA) ./files/99-luci.conf $(1)/etc/pihole/
+	$(INSTALL_DATA) ./files/99-luci.conf $(1)/etc/lighttpd/conf.d/
 endef
 
 define Build/Prepare

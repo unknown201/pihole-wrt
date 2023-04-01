@@ -8,21 +8,22 @@ PKG_SOURCE_VERSION:=b29a423b9553654f113bcdc8a82296eb6e4613d7
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/pi-hole/AdminLTE.git
 PKG_SOURCE:=$(PKG_SOURCE_VERSION).tar.gz
-PKG_MIRROR_HASH:=53d11375da64ff76ec9166f0d3d0af91a9767ecb44d2bfaa30da0c993dd14ed2
+PKG_MIRROR_HASH:=4668a2c61baad18a3c6cae9bf21dd5e64d012121f903d339c5ac069b6d92d146
 
 PKG_LICENSE:=EUPL
 PKG_LICENSE_FILES:=LICENSE
+PKG_INSTALL:=1
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)/WEB-$(PKG_SOURCE_VERSION)
 
 include $(INCLUDE_DIR)/package.mk
-
+#+procps-ng-ps - not compat with current distro?
 define Package/pihole-web
 	SECTION:=net
-	CATEGORY:=Network
+	CATEGORY:=Pihole
 	TITLE:=Pi-hole Dashboard for stats and more
 	URL:=https://pi-hole.net/
-	DEPENDS:=+lighttpd +lighttpd-mod-access +lighttpd-mod-fastcgi +lighttpd-mod-setenv +php8 +php8-fpm +php8-mod-openssl +php8-mod-phar +php8-mod-session +php8-mod-sqlite3 +procps-ng-ps +lighttpd-mod-accesslog +lighttpd-mod-redirect +php8-cgi +php8-mod-filter
+	DEPENDS:=+lighttpd +lighttpd-mod-access +lighttpd-mod-fastcgi +lighttpd-mod-setenv +php8 +php8-fpm +php8-mod-openssl +php8-mod-phar +php8-mod-session +php8-mod-sqlite3 +lighttpd-mod-accesslog +lighttpd-mod-redirect +php8-cgi +php8-mod-filter
 	PKGARCH:=all
 endef
 
@@ -32,8 +33,8 @@ endef
 
 define Build/Prepare
 	(echo "Starting prep phase")
-	(cp -R $(PKG_BUILD_DIR)/../pihole-web-1.0/* $(PKG_BUILD_DIR)/)
 	$(Build/Prepare/Default)
+	(cp -R $(PKG_BUILD_DIR)/../pihole-web-$(PKG_VERSION)/* $(PKG_BUILD_DIR)/)
 endef
 
 define Package/pihole-web/install
