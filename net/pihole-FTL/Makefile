@@ -35,7 +35,6 @@ define Package/pihole-FTL/Default
   TITLE:=The Pi-hole FTL engine
   URL:=https://pi-hole.net/
   DEPENDS:=+libncurses
-  CONFLICTS:=dnsmasq dnsmasq-dhcpv6 dnsmasq-full
   USERID:=pihole:pihole
 endef
 

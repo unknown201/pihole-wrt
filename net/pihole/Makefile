@@ -25,8 +25,7 @@ define Package/pihole
 	CATEGORY:=Pihole
 	TITLE:=A black hole for Internet advertisements
 	URL:=https://pi-hole.net/
-  	DEPENDS:=pihole-FTL pihole-web +sudo +bash +bind-dig +coreutils-sort +curl +idn +logrotate +coreutils-install +coreutils-chmod +coreutils-chown +coreutils-mktemp
-	PKGARCH:=all
+  	DEPENDS:=pihole-FTL-full pihole-web +sudo +bash +bind-dig +curl +idn +logrotate +coreutils
 endef
 
 define Package/pihole/description
@@ -42,7 +41,7 @@ define Package/pihole/install
 	$(CP) -r $(PKG_BUILD_DIR)/files/* $(1)/etc/.pihole
 
 	$(INSTALL_DIR) $(1)/etc/pihole
-	$(INSTALL_DATA) ./files/setupVars.conf $(1)/etc/lspihole/
+	$(INSTALL_DATA) ./files/setupVars.conf $(1)/etc/pihole/
 	
 	echo -n "" > $(1)/etc/pihole/custom.list
 	echo -n "openwrt openwrt " > $(1)/etc/pihole/localbranches
@@ -52,13 +51,18 @@ endef
 
 define Package/pihole/postinst
 #!/bin/sh
-cd /etc/.pihole/automated\ install/
+if [ -z "$${IPKG_INSTROOT}" ]; then
+	service dnsmasq stop
+	service dnsmasq disable
+	exec /etc/.pihole/automated\ install/basic-install.sh
+fi
 endef
 
 define Package/pihole/prerm
 #!/bin/sh
-cd /etc/.pihole/automated\ install/
-exec ./uninstall.sh
+if [ -z "$${IPKG_INSTROOT}" ]; then
+	exec /etc/.pihole/automated\ install/uninstall.sh
+fi
 endef
 
 define Build/Prepare
