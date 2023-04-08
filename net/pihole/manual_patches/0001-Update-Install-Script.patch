@@ -1,6 +1,6 @@
-From 1985ce875270449cd8a723550982b41645c8f164 Mon Sep 17 00:00:00 2001
-From: root <root@buildserver.jfly.dev>
-Date: Fri, 24 Mar 2023 04:13:16 +0000
+From d5aa94b897f9152a068fa36a2a568169187cac66 Mon Sep 17 00:00:00 2001
+From: Joshua Gilpatrick <unknown201@gmail.com>
+Date: Thu, 6 Apr 2023 06:07:03 +0000
 Subject: [PATCH] Update Install Script
 
 ---
@@ -9,8 +9,9 @@ Subject: [PATCH] Update Install Script
  advanced/Templates/pihole.sudo        |  2 +
  advanced/pihole-admin.conf            | 19 ++-----
  automated install/basic-install.sh    | 77 +++++++++------------------
+ gravity.sh                            | 10 ++--
  pihole                                |  8 +--
- 6 files changed, 43 insertions(+), 73 deletions(-)
+ 7 files changed, 48 insertions(+), 78 deletions(-)
 
 diff --git a/advanced/Scripts/COL_TABLE b/advanced/Scripts/COL_TABLE
 index 2d2b074b..8ac3635f 100644
@@ -312,6 +313,55 @@ index 24fe9e54..eaf61816 100755
  
      if [[ "${useUpdateVars}" == false ]]; then
          displayFinalMessage "${pw}"
+diff --git a/gravity.sh b/gravity.sh
+index a415aa01..d618a650 100755
+--- a/gravity.sh
++++ b/gravity.sh
+@@ -19,7 +19,7 @@ source "${coltable}"
+ source "/etc/.pihole/advanced/Scripts/database_migration/gravity-db.sh"
+ 
+ basename="pihole"
+-PIHOLE_COMMAND="/usr/local/bin/${basename}"
++PIHOLE_COMMAND="/usr//bin/${basename}"
+ 
+ piholeDir="/etc/${basename}"
+ 
+@@ -165,7 +165,7 @@ database_table_from_file() {
+   src="${2}"
+   backup_path="${piholeDir}/migration_backup"
+   backup_file="${backup_path}/$(basename "${2}")"
+-  tmpFile="$(mktemp -p "${GRAVITY_TMPDIR}" --suffix=".gravity")"
++  tmpFile="$(mktemp).gravity"
+ 
+   local timestamp
+   timestamp="$(date --utc +'%s')"
+@@ -438,7 +438,7 @@ gravity_DownloadBlocklists() {
+     echo -e "${OVER}  ${TICK} ${str}"
+   fi
+ 
+-  target="$(mktemp -p "${GRAVITY_TMPDIR}" --suffix=".gravity")"
++  target="$(mktemp).gravity"
+ 
+   # Use compression to reduce the amount of data that is transferred
+   # between the Pi-hole and the ad list provider. Use this feature
+@@ -569,7 +569,7 @@ parseList() {
+   fi
+ 
+   # For completeness, we will get a count of non_domains (this is the number of entries left after stripping the source of comments/duplicates/false positives/domains)
+-  invalid_domains="$(mktemp -p "${GRAVITY_TMPDIR}" --suffix=".ph-non-domains")"
++  invalid_domains="$(mktemp).ph-non-domains"
+ 
+   num_non_domains=$(grep -Ev "^(${valid_domain_pattern}|${abp_domain_pattern}|${false_positives})$" "${src}" | tee "${invalid_domains}" | wc -l)
+ 
+@@ -619,7 +619,7 @@ gravity_DownloadBlocklistFromUrl() {
+   local heisenbergCompensator="" listCurlBuffer str httpCode success="" ip
+ 
+   # Create temp file to store content on disk instead of RAM
+-  listCurlBuffer=$(mktemp -p "${GRAVITY_TMPDIR}" --suffix=".phgpb")
++  listCurlBuffer=$(mktemp).phgpb
+ 
+   # Determine if $saveLocation has read permission
+   if [[ -r "${saveLocation}" && $url != "file"* ]]; then
 diff --git a/pihole b/pihole
 index 1d9ad82c..4d4e7b3f 100755
 --- a/pihole
